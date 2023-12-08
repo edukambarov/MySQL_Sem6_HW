@@ -1,0 +1,49 @@
+Задание: 
+
+Создать процедуру, которая решает следующую задачу
+Выбрать для одного пользователя 5 пользователей
+в случайной комбинации, 
+которые удовлетворяют хотя бы одному критерию:
+а) из одного города
+б) состоят в одной группе
+в) друзья друзей
+
+
+
+Решение:
+
+USE lesson_4; -- вызов бд
+
+DROP PROCEDURE IF EXISTS buddies;
+DELIMITER $$
+
+CREATE PROCEDURE buddies(IN search_id int)
+BEGIN
+  SELECT b.user_id, u.firstname, u.lastname
+  FROM
+    (SELECT user_id FROM
+      (SELECT p.user_id
+        FROM profiles p
+        WHERE p.hometown = (SELECT hometown FROM profiles WHERE PROFILES.user_id = search_id)
+      UNION
+      SELECT id
+        FROM communities
+        WHERE id IN (SELECT community_id FROM users_communities WHERE user_id = search_id)) a
+    UNION
+    SELECT target_user_id 
+      FROM friend_requests
+      WHERE initiator_user_id IN (
+        SELECT
+           target_user_id
+         FROM friend_requests
+         WHERE initiator_user_id = search_id AND status = 'approved')) b
+  LEFT JOIN users u
+    ON b.user_id = u.id
+  ORDER BY RAND()
+  LIMIT 5;
+END
+$$
+
+DELIMITER ;
+
+CALL buddies(3) --вызов процедуры

@@ -1,0 +1,28 @@
+Задание:
+
+Создать функцию, вычисляющей коэффициент
+популярности пользователя (по количеству друзей)
+
+Решение:
+USE lesson_4; -- вызов БД
+
+DROP PROCEDURE IF EXISTS count_friends;
+DELIMITER //
+CREATE PROCEDURE count_friends
+(
+	IN id INT, -- input, e.g.1
+	OUT result INT
+)
+BEGIN
+	SELECT
+    COUNT(*) AS result
+    FROM friend_requests AS fr
+    WHERE id = fr.initiator_user_id AND status = 'approved'  
+    OR id = fr.target_user_id AND status = 'approved';  
+END //
+
+-- Вызов функции
+CALL count_friends(1, @res);
+
+
+
